@@ -1,0 +1,24 @@
+<projects>
+
+	<!-- project 2 -->
+	<project>
+		<name>project1</name>
+		<root>/project1</root>
+		<path>./bin/</path>
+		<servlet>
+			<class>com.test.HelloServlet</class>
+			<url>/HelloServlet</url>
+		</servlet>
+	</project>
+	
+	<!-- project 2 -->
+	<project>
+		<name>project2</name>
+		<root>/project2</root>
+		<path>./bin/</path>
+		<servlet>
+			<class>com.test.GoodbyeServlet</class>
+			<url>/GoodbyeServlet</url>
+		</servlet>
+	</project>
+</projects>
