@@ -2,11 +2,13 @@ package com.ylf.connector;
 
 import java.net.Socket;
 
+import com.ylf.logger.Logger;
 import com.ylf.request.HttpRequest;
 import com.ylf.response.HttpResponse;
 import com.ylf.servlet.HttpServletRequest;
 import com.ylf.servlet.HttpServletResponse;
 import com.ylf.servlet.ServletProcessor;
+import com.ylf.util.LoggerUtil;
 import com.ylf.util.TimeUtil;
 
 public class HttpProcessor extends Thread{
@@ -41,19 +43,19 @@ public class HttpProcessor extends Thread{
 	
 	
 	public boolean process(){
-		System.out.println("id=" + iid + " processor is working...");
+		Logger logger = LoggerUtil.getLogger(this.getClass().getPackage().getName());
+		logger.log("id=" + iid + " processor is working...", Logger.DEBUG);
 		try{
 			HttpRequest request = new HttpRequest(socket.getInputStream());
 			HttpResponse response = new HttpResponse(socket.getOutputStream());
 
 			request.parse();
 			
-			System.out.println("[HttpProcessor] request:\n" + request);
-//			processor.process(new HttpServletRequest(request), new HttpServletResponse(response));
+			logger.log("[HttpProcessor] request:\n" + request, Logger.INFO);
 			connector.getContainer().invoke(new HttpServletRequest(request), new HttpServletResponse(response));
 			socket.close();
 			
-			System.out.println("id=" + iid + " processor stop:" + TimeUtil.getFormatTime());
+			logger.log("id=" + iid + " processor stop:" + TimeUtil.getFormatTime(), Logger.DEBUG);
 			return true;
 		}catch(Exception e){
 			e.printStackTrace();
@@ -65,12 +67,14 @@ public class HttpProcessor extends Thread{
 	public void run() {
 		while(!stop){
 			
-				try{
-					synchronized(this){
-						while(socket==null){
-							wait();
-						}
+			try{
+				synchronized(this){
+					while(!stop && socket==null){
+						wait();
 					}
+				}
+				if(stop)
+					break;
 				process();  // ¥¶¿Ì
 				socket = null;
 				
@@ -79,12 +83,13 @@ public class HttpProcessor extends Thread{
 			}catch(Exception e){
 				e.printStackTrace();
 			}
-			
 		}
+		LoggerUtil.getLogger(this.getClass().getPackage().getName()).log("from self processor: " + toString() + "has stopped.", Logger.INFO);
 	}
 	
-	public void close(){
+	public synchronized void close(){
 		stop = true;
+		notifyAll();
 	}
 
 	@Override

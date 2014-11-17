@@ -1,7 +1,9 @@
 package com.ylf.connector;
 
-import java.security.InvalidKeyException;
 import java.security.InvalidParameterException;
+
+import com.ylf.logger.Logger;
+import com.ylf.util.LoggerUtil;
 
 public class HttpProcessorPool {
 	private int capacity;
@@ -54,13 +56,14 @@ public class HttpProcessorPool {
 	}
 	
 	public void close(){
+		Logger logger = LoggerUtil.getLogger(this.getClass().getPackage().getName());
 		int closed = 0;
 		while(closed < size){
 			try{
 				synchronized(this){
 					if(current < 0)
 						wait();
-					System.out.println("close " + processors[current].toString() );
+					logger.log("close " + processors[current].toString(), Logger.INFO );
 					processors[current--].close();
 					closed ++;
 					
@@ -69,6 +72,6 @@ public class HttpProcessorPool {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("Processor pool close ok.");
+		logger.log("Processor pool close ok.", Logger.INFO);
 	}
 }

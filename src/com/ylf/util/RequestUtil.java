@@ -3,14 +3,17 @@ package com.ylf.util;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.ylf.logger.Logger;
 import com.ylf.request.HttpRequest;
 
 public class RequestUtil {
 	public static int MAX_SIZE = 4*1024;
 	
+	
 	public static void parse(HttpRequest req, InputStream in){
+		Logger logger = LoggerUtil.getLogger(RequestUtil.class.getPackage().getName());
 		if(in == null){
-//			System.out.println("[RequestUtil] inputstream is null!");
+			logger.log("[RequestUtil] inputstream is null!", Logger.DEBUG);
 			return ;
 		}
 		// read data
@@ -19,13 +22,13 @@ public class RequestUtil {
 			int available = in.read(bytes);
 			if(available <= 0)
 				return;
-//			System.out.println("[RequestUtil] available:" + available);
+			logger.log("[RequestUtil] available:" + available, Logger.DEBUG);
 			StringBuilder sb = new StringBuilder();
 			for(int i=0; i<available; i++){
 				sb.append((char)bytes[i]);
 			}
 			
-//			System.out.println("[RequestUtil] " + sb);
+			logger.log("[RequestUtil] " + sb, Logger.INFO);
 			
 			parseRequestLine(req, sb);  // 解析请求行
 			parseHeader(req, sb);  // 解析请求头
@@ -36,9 +39,10 @@ public class RequestUtil {
 	}
 	
 	private static void parseRequestLine(HttpRequest req, StringBuilder sb){
+		Logger logger = LoggerUtil.getLogger(RequestUtil.class.getPackage().getName());
 		int index = sb.indexOf("\r\n");
 		if(index < 0){
-//			System.out.println("[RequestUtil] parse RequestLine error.");
+			logger.log("[RequestUtil] parse RequestLine error.", Logger.DEBUG);
 			return;
 		}
 

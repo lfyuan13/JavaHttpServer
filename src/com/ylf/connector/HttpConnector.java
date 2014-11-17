@@ -7,6 +7,8 @@ import java.net.Socket;
 
 import com.ylf.container.Container;
 import com.ylf.container.SimpleContainer;
+import com.ylf.logger.Logger;
+import com.ylf.util.LoggerUtil;
 import com.ylf.util.TimeUtil;
 
 /**
@@ -27,9 +29,9 @@ public class HttpConnector extends Thread {
 	public HttpConnector(){
 		System.out.println("version 3: ylf_tomcat");
 		if(init())
-			System.out.println("[HttpConnector] create http server ok.");
+			LoggerUtil.getLogger(this.getClass().getPackage().getName()).log("[HttpConnector] create http server ok.", Logger.DEBUG);
 		else
-			System.out.println("[HttpConnector] create http server fail.");
+			LoggerUtil.getLogger(this.getClass().getPackage().getName()).log("[HttpConnector] create http server fail.", Logger.DEBUG);
 	}
 	
 	/**
@@ -50,22 +52,23 @@ public class HttpConnector extends Thread {
 	
 	@Override
 	public void run() {
+		container.start();
 		while(!stop){
 			try{
 				Socket socket = server.accept();
-				System.out.println("[HttpConnector] " + TimeUtil.getFormatTime() + " receive...");
+				LoggerUtil.getLogger(this.getClass().getPackage().getName()).log("[HttpConnector] " + TimeUtil.getFormatTime() + " receive...", Logger.INFO);
 				HttpProcessor p = pool.pop();
 				if(p==null){
 					socket.close();
 				}else{
 					p.assign(socket);
 				}
-				System.out.println("[HttpConnector] " + TimeUtil.getFormatTime() + " next wait..");
 				
 			}catch(Exception e){
 				e.printStackTrace();
 			}
 		}
+		container.stop();
 		try {
 			server.close();
 		} catch (IOException e) {
@@ -91,6 +94,11 @@ public class HttpConnector extends Thread {
 	
 	public void close(){
 		pool.close();
+		stop = true;
+		try{
+			server.close();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
-
 }
